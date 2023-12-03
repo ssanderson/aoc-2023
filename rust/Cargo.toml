@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "utils",
+    "p1",
+]
+resolver = "2"
+
+[workspace.dependencies]
+anyhow = "1.0.75"
+regex = "1.10.2"
+utils = { path = "./utils"}
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Scott Sanderson"]
+edition = "2021"
