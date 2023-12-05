@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use utils::{Part1, Result};
+use utils::{Part1, Part2, Result};
 
 struct Problem3 {}
 
@@ -20,35 +20,46 @@ impl Part1 for Problem3 {
     }
 }
 
+impl Part2 for Problem3 {
+    type Input2 = EngineDiagram;
+
+    fn parse2(data: &str) -> Result<Self::Input2> {
+        Self::parse1(data)
+    }
+
+    fn run2(data: Self::Input2) -> Result<String> {
+        let gears = data.get_gears();
+        let result: u32 = gears.iter().map(Gear::ratio).sum();
+        Ok(result.to_string())
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 struct EngineDiagram {
     lines: Vec<Line>,
 }
 
 impl EngineDiagram {
+    pub fn iter_adjacent_lines(
+        &self,
+    ) -> impl Iterator<Item = (Option<&Line>, &Line, Option<&Line>)> {
+        self.lines.iter().enumerate().map(|(i, line)| {
+            let prev = self.lines.get(i.wrapping_sub(1));
+            let next = self.lines.get(i + 1);
+            (prev, line, next)
+        })
+    }
+
     pub fn get_parts(&self) -> Vec<&Num> {
-        self.lines
-            .iter()
-            .enumerate()
-            .flat_map(|(i, line)| {
-                let adjacent_lines = [
-                    self.lines.get(i.wrapping_sub(1)),
-                    Some(line),
-                    self.lines.get(i + 1),
-                ];
-                line.numbers.iter().filter(move |num| {
-                    let is_good = adjacent_lines
-                        .iter()
-                        .filter_map(|&x| x)
-                        .flat_map(|line| line.symbols.iter())
-                        .any(|sym| (num.start <= sym.pos + 1) && (sym.pos <= num.end + 1));
-                    if !is_good {
-                        println!("Filtered out line={i} n={num:?}");
-                    }
-                    is_good
-                })
-            })
-            .collect::<Vec<_>>()
+        self.iter_adjacent_lines()
+            .flat_map(|(prev, cur, next)| cur.parts(prev, next))
+            .collect()
+    }
+
+    pub fn get_gears(&self) -> Vec<Gear<'_>> {
+        self.iter_adjacent_lines()
+            .flat_map(|(prev, cur, next)| cur.gears(prev, next))
+            .collect()
     }
 }
 
@@ -56,6 +67,43 @@ impl EngineDiagram {
 struct Line {
     symbols: Vec<Sym>,
     numbers: Vec<Num>,
+}
+
+impl Line {
+    pub fn parts<'a>(
+        &'a self,
+        prev: Option<&'a Line>,
+        next: Option<&'a Line>,
+    ) -> impl Iterator<Item = &'a Num> {
+        let neighbors = [prev, Some(self), next];
+        self.numbers.iter().filter(move |num| {
+            neighbors
+                .iter()
+                .filter_map(|&x| x)
+                .flat_map(|line| line.symbols.iter())
+                .any(|sym| sym.adjacent_to(num))
+        })
+    }
+
+    pub fn gears<'a>(
+        &'a self,
+        prev: Option<&'a Line>,
+        next: Option<&'a Line>,
+    ) -> impl Iterator<Item = Gear<'a>> + 'a {
+        let neighbors = [prev, Some(self), next];
+        self.symbols.iter().filter_map(move |sym| {
+            let adjacent_nums = neighbors
+                .iter()
+                .filter_map(|&x| x)
+                .flat_map(|line| line.numbers.iter().filter(|num| sym.adjacent_to(num)));
+
+            let [Some(num1), Some(num2), None] = utils::take_fixed(adjacent_nums) else {
+                return None;
+            };
+
+            Some(Gear { sym, num1, num2 })
+        })
+    }
 }
 
 impl FromStr for Line {
@@ -91,6 +139,7 @@ impl FromStr for Line {
             };
         }
 
+        // finalize last number
         if let Some(num) = state {
             numbers.push(num);
         }
@@ -99,22 +148,36 @@ impl FromStr for Line {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct Sym {
     pos: usize,
     c: char,
 }
 
+impl Sym {
+    pub fn adjacent_to(&self, num: &Num) -> bool {
+        (num.start <= self.pos + 1) && (self.pos <= num.end + 1)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
+struct Gear<'a> {
+    sym: &'a Sym,
+    num1: &'a Num,
+    num2: &'a Num,
+}
+
+impl Gear<'_> {
+    pub fn ratio(&self) -> u32 {
+        self.num1.n * self.num2.n
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 struct Num {
     start: usize,
     end: usize,
     n: u32,
-}
-
-fn main() -> Result<()> {
-    utils::run_part1::<Problem3>()?;
-    Ok(())
 }
 
 #[cfg(test)]
@@ -180,7 +243,7 @@ mod test {
     }
 
     #[test]
-    fn test_run() -> Result<()> {
+    fn test_run1() -> Result<()> {
         let input = r#"
 467..114..
 ...*......
@@ -200,4 +263,32 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn test_run2() -> Result<()> {
+        let input = r#"
+467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598.."#
+            .trim();
+
+        let parsed = Problem3::parse1(input.trim())?;
+        let result = Problem3::run2(parsed)?;
+        assert_eq!(result, "467835");
+
+        Ok(())
+    }
+}
+
+fn main() -> Result<()> {
+    utils::run_part1::<Problem3>()?;
+    utils::run_part2::<Problem3>()?;
+    Ok(())
 }
