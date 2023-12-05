@@ -3,6 +3,7 @@ members = [
     "utils",
     "p1",
     "p2",
+    "p3",
 ]
 resolver = "2"
 
