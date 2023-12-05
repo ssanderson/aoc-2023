@@ -84,7 +84,7 @@ impl FromStr for Game {
         //
         // Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
         // Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-        let [Some(game), Some(game_desc), None] = utils::take_fixed(s.split(":")) else {
+        let Some((game, game_desc)) = s.split_once(":") else {
             anyhow::bail!("Invalid game description: {s}");
         };
 
@@ -99,10 +99,9 @@ impl FromStr for Game {
         let dice_re = Regex::new("([0-9]+) (red|green|blue)")?;
         let samples: Result<Vec<CubeSet>> = game_desc
             .split("; ")
-            .map(|draw| {
+            .map(|sample| {
                 let (mut red, mut blue, mut green) = (None, None, None);
-
-                for die in draw.split(",") {
+                for die in sample.split(",") {
                     let Some(c) = dice_re.captures(die) else {
                         anyhow::bail!("Invalid dice sample: {die:?}")
                     };
