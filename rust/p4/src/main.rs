@@ -1,4 +1,4 @@
-use anyhow::{bail, Context};
+use anyhow::bail;
 use std::str::FromStr;
 
 use utils::{Part1, Part2, Result};
@@ -7,9 +7,9 @@ struct Problem4 {}
 
 impl Part1 for Problem4 {
     const N: u8 = 4;
-    type Input1 = Cards;
+    type Input = Cards;
 
-    fn parse1(data: &str) -> Result<Self::Input1> {
+    fn parse(data: &str) -> Result<Self::Input> {
         let cards: Vec<Card> = data.lines().map(Card::from_str).collect::<Result<_>>()?;
         Ok(Cards { cards })
     }
@@ -21,12 +21,6 @@ impl Part1 for Problem4 {
 }
 
 impl Part2 for Problem4 {
-    type Input2 = Cards;
-
-    fn parse2(data: &str) -> anyhow::Result<Self::Input2> {
-        Self::parse1(data)
-    }
-
     fn run2(cards: Cards) -> Result<String> {
         let mut copies: Vec<u32> = vec![1; cards.cards.len()];
         for (i, card) in cards.cards.iter().enumerate() {
@@ -107,7 +101,7 @@ Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"#
             .trim();
-        let parsed = Problem4::parse2(input)?;
+        let parsed = Problem4::parse(input)?;
         let result = Problem4::run2(parsed)?;
         assert_eq!(result, "30");
 

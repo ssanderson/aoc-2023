@@ -6,9 +6,9 @@ struct Problem3 {}
 
 impl Part1 for Problem3 {
     const N: u8 = 3;
-    type Input1 = EngineDiagram;
+    type Input = EngineDiagram;
 
-    fn parse1(data: &str) -> Result<Self::Input1> {
+    fn parse(data: &str) -> Result<Self::Input> {
         let lines: Result<Vec<_>> = data.lines().map(|s| s.parse::<Line>()).collect();
         Ok(EngineDiagram { lines: lines? })
     }
@@ -21,13 +21,7 @@ impl Part1 for Problem3 {
 }
 
 impl Part2 for Problem3 {
-    type Input2 = EngineDiagram;
-
-    fn parse2(data: &str) -> Result<Self::Input2> {
-        Self::parse1(data)
-    }
-
-    fn run2(data: Self::Input2) -> Result<String> {
+    fn run2(data: Self::Input) -> Result<String> {
         let gears = data.get_gears();
         let result: u32 = gears.iter().map(Gear::ratio).sum();
         Ok(result.to_string())
@@ -193,7 +187,7 @@ mod test {
 ......#...
 617*......"#;
 
-        let parsed = Problem3::parse1(input.trim())?;
+        let parsed = Problem3::parse(input.trim())?;
         let expected = EngineDiagram {
             lines: vec![
                 Line {
@@ -257,7 +251,7 @@ mod test {
 .664.598.."#
             .trim();
 
-        let parsed = Problem3::parse1(input.trim())?;
+        let parsed = Problem3::parse(input.trim())?;
         let result = Problem3::run1(parsed)?;
         assert_eq!(result, "4361");
 
@@ -279,7 +273,7 @@ mod test {
 .664.598.."#
             .trim();
 
-        let parsed = Problem3::parse1(input.trim())?;
+        let parsed = Problem3::parse(input.trim())?;
         let result = Problem3::run2(parsed)?;
         assert_eq!(result, "467835");
 

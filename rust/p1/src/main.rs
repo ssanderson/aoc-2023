@@ -6,10 +6,15 @@ struct Problem1 {}
 
 impl Part1 for Problem1 {
     const N: u8 = 1;
-    type Input1 = Vec<u32>;
+    type Input = Vec<String>;
 
-    fn parse1(data: &str) -> Result<Self::Input1> {
-        data.lines()
+    fn parse(data: &str) -> Result<Self::Input> {
+        Ok(data.lines().map(ToOwned::to_owned).collect())
+    }
+
+    fn run1(input: Self::Input) -> Result<String> {
+        let nums = input
+            .iter()
             .map(|line| {
                 let nums: Vec<_> = line
                     .chars()
@@ -24,18 +29,14 @@ impl Part1 for Problem1 {
                     _ => Err(anyhow!("Invalid line: {line}")),
                 }
             })
-            .collect()
-    }
+            .collect::<Result<Vec<_>>>()?;
 
-    fn run1(input: Self::Input1) -> Result<String> {
-        Ok(input.iter().sum::<u32>().to_string())
+        Ok(nums.iter().sum::<u32>().to_string())
     }
 }
 
 impl Part2 for Problem1 {
-    type Input2 = Self::Input1;
-
-    fn parse2(data: &str) -> Result<Self::Input1> {
+    fn run2(input: Self::Input) -> Result<String> {
         // regexes for getting the first and last occurrence of required
         // pattern.
         let match_first = Regex::new(r"([0-9]|one|two|three|four|five|six|seven|eight|nine).*$")?;
@@ -64,7 +65,8 @@ impl Part2 for Problem1 {
             })
         };
 
-        data.lines()
+        let nums: Vec<u32> = input
+            .iter()
             .map(|line| {
                 let first = get_match(line, &match_first);
                 let last = get_match(line, &match_last);
@@ -73,11 +75,9 @@ impl Part2 for Problem1 {
                     _ => Err(anyhow!("Invalid line: {line}")),
                 }
             })
-            .collect()
-    }
+            .collect::<Result<_>>()?;
 
-    fn run2(input: Self::Input2) -> Result<String> {
-        Self::run1(input)
+        Ok(nums.iter().sum::<u32>().to_string())
     }
 }
 
@@ -96,9 +96,8 @@ mod test {
 pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet"#;
-        let parsed = Problem1::parse1(s)?;
+        let parsed = Problem1::parse(s)?;
 
-        assert_eq!(vec![12, 38, 15, 77], parsed);
         assert_eq!(Problem1::run1(parsed)?, "142");
 
         Ok(())
@@ -113,9 +112,7 @@ xtwone3four
 4nineeightseven2
 zoneight234
 7pqrstsixteen"#;
-        let parsed = Problem1::parse2(s)?;
-
-        assert_eq!(vec![29, 83, 13, 24, 42, 14, 76], parsed);
+        let parsed = Problem1::parse(s)?;
         assert_eq!(Problem1::run2(parsed)?, "281");
 
         Ok(())

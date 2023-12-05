@@ -7,14 +7,14 @@ struct Problem2 {}
 
 impl Part1 for Problem2 {
     const N: u8 = 2;
-    type Input1 = Input;
+    type Input = Input;
 
-    fn parse1(data: &str) -> Result<Self::Input1> {
+    fn parse(data: &str) -> Result<Self::Input> {
         let parsed: Result<_> = data.lines().map(|line| line.parse::<Game>()).collect();
         parsed.map(|games| Input { games })
     }
 
-    fn run1(input: Self::Input1) -> Result<String> {
+    fn run1(input: Self::Input) -> Result<String> {
         let possible_games = input
             .games
             .iter()
@@ -26,13 +26,7 @@ impl Part1 for Problem2 {
 }
 
 impl Part2 for Problem2 {
-    type Input2 = Input;
-
-    fn parse2(s: &str) -> Result<Self::Input2> {
-        Self::parse1(s)
-    }
-
-    fn run2(input: Self::Input2) -> Result<String> {
+    fn run2(input: Self::Input) -> Result<String> {
         let sum: u32 = input.games.iter().map(|g| g.power()).sum();
         Ok(sum.to_string())
     }
@@ -151,7 +145,7 @@ mod test {
         let s = r#"""Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue"
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red"#;
-        let parsed = Problem2::parse1(s)?;
+        let parsed = Problem2::parse(s)?;
         let expected = Input {
             games: vec![
                 Game {
