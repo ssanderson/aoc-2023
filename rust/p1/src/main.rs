@@ -41,31 +41,33 @@ impl Part2 for Problem1 {
         let match_first = Regex::new(r"([0-9]|one|two|three|four|five|six|seven|eight|nine).*$")?;
         let match_last = Regex::new(r"^.*([0-9]|one|two|three|four|five|six|seven|eight|nine)")?;
 
-        let extract_num = |line, re: &Regex| {
+        let match2num = |s: &str| match s {
+            "0" => 0,
+            "1" | "one" => 1,
+            "2" | "two" => 2,
+            "3" | "three" => 3,
+            "4" | "four" => 4,
+            "5" | "five" => 5,
+            "6" | "six" => 6,
+            "7" | "seven" => 7,
+            "8" | "eight" => 8,
+            "9" | "nine" => 9,
+            s => panic!("Failed to parse line: {s}"),
+        };
+
+        let get_match = |line, re: &Regex| {
             re.captures(line).map(|c| {
                 // unwrap() is safe here b/c regex captures have at
                 // least one capture grou.
                 let capture = c.get(1).unwrap().as_str();
-                match capture {
-                    "0" => 0,
-                    "1" | "one" => 1,
-                    "2" | "two" => 2,
-                    "3" | "three" => 3,
-                    "4" | "four" => 4,
-                    "5" | "five" => 5,
-                    "6" | "six" => 6,
-                    "7" | "seven" => 7,
-                    "8" | "eight" => 8,
-                    "9" | "nine" => 9,
-                    s => panic!("Failed to parse line: {s}"),
-                }
+                match2num(capture)
             })
         };
 
         data.lines()
             .map(|line| {
-                let first = extract_num(line, &match_first);
-                let last = extract_num(line, &match_last);
+                let first = get_match(line, &match_first);
+                let last = get_match(line, &match_last);
                 match (first, last) {
                     (Some(x), Some(y)) => Ok(10 * x + y),
                     _ => Err(anyhow!("Invalid line: {line}")),
