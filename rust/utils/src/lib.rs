@@ -1,6 +1,29 @@
 use anyhow::Context;
 use std::path::PathBuf;
 
+/// Take a statically-known number of items from an iterator.
+pub fn take_fixed<const N: usize, T>(mut it: impl Iterator<Item = T>) -> [Option<T>; N] {
+    let mut out: [Option<T>; N] = std::array::from_fn(|_| None);
+    for elem in out.iter_mut() {
+        *elem = it.next();
+    }
+    out
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_take_fixed() {
+        let [one, two] = take_fixed([1, 2, 3].into_iter());
+        assert_eq!([one, two], [Some(1), Some(2)]);
+
+        let items = take_fixed::<4, _>([1, 2, 3].into_iter());
+        assert_eq!(items, [Some(1), Some(2), Some(3), None]);
+    }
+}
+
 pub fn input_path(n: u8) -> PathBuf {
     let mut p = PathBuf::from("/home/ssanderson/projects/aoc-2023/problems/");
     p.push(n.to_string());
