@@ -1,6 +1,8 @@
 mod input;
 mod parser;
 
+use rayon::prelude::*;
+
 use anyhow::Context;
 use utils::{Part1, Part2, Result};
 
@@ -32,15 +34,22 @@ impl Part2 for Problem5 {
     fn run2(input: Self::Input) -> anyhow::Result<String> {
         // TODO: Non brute-force solution.
         let mut seeds = input.seeds.iter();
-        let mut best = std::u64::MAX;
+
+        let mut pairs = Vec::new();
         while let (Some(&start), Some(&len)) = (seeds.next(), seeds.next()) {
-            for seed in start..start + len {
-                let loc = input.seed_location(seed);
-                if loc < best {
-                    best = loc;
-                }
-            }
+            pairs.push((start, len));
         }
+
+        let best = pairs
+            .into_iter()
+            .map(|(start, len)| {
+                (start..start + len)
+                    .into_par_iter()
+                    .map(|s| input.seed_location(s))
+                    .reduce(|| std::u64::MAX, std::cmp::min)
+            })
+            .reduce(std::cmp::min)
+            .unwrap();
 
         Ok(best.to_string())
     }

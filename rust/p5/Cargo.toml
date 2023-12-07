@@ -9,5 +9,6 @@ edition.workspace = true
 [dependencies]
 anyhow.workspace = true
 nom.workspace = true
+rayon.workspace = true
 regex.workspace = true
 utils.workspace = true
