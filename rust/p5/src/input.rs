@@ -52,7 +52,6 @@ pub struct MapEntry {
 impl MapEntry {
     fn translate(&self, val: u64) -> Option<u64> {
         if val >= self.source && val < self.source + self.length {
-            println!("{:?}", self);
             Some(self.dest + (val - self.source))
         } else {
             None
