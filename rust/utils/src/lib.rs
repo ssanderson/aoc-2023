@@ -1,3 +1,5 @@
+pub mod parse;
+
 use anyhow::Context;
 use std::path::PathBuf;
 
