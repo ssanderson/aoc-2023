@@ -12,6 +12,8 @@ pub fn take_fixed<const N: usize, T>(mut it: impl Iterator<Item = T>) -> [Option
     out
 }
 
+pub fn map_fixed<const N: usize, T>(
+
 #[cfg(test)]
 mod test {
     use super::*;
