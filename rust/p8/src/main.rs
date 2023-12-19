@@ -1,8 +1,29 @@
 use std::collections::HashMap;
 
-use utils::{Part1, Result};
+use utils::{Part1, Part2, Result};
 
 struct Problem8;
+
+impl Problem8 {
+    fn steps_to_complete(
+        mut pos: Label,
+        cond: impl Fn(Label) -> bool,
+        directions: &[Direction],
+        m: &HashMap<Label, (Label, Label)>,
+    ) -> Result<usize> {
+        for (i, &d) in directions.iter().cycle().enumerate() {
+            pos = match (m.get(&pos), d) {
+                (Some((left, _)), Direction::Left) => *left,
+                (Some((_, right)), Direction::Right) => *right,
+                (None, _) => anyhow::bail!("No map node for {pos:?}"),
+            };
+            if cond(pos) {
+                return Ok(i + 1);
+            }
+        }
+        unreachable!()
+    }
+}
 
 impl Part1 for Problem8 {
     const N: u8 = 8;
@@ -18,21 +39,46 @@ impl Part1 for Problem8 {
             m.insert(node.label, node.choices);
         }
 
-        let mut it = input.directions.iter().cycle().enumerate();
-        let mut pos = Label(['A', 'A', 'A']);
-        let steps = loop {
-            let (i, &d) = it.next().unwrap();
-            pos = match (m.get(&pos), d) {
-                (Some((left, _)), Direction::Left) => *left,
-                (Some((_, right)), Direction::Right) => *right,
-                (None, _) => anyhow::bail!("No map node for {pos:?}"),
-            };
-            if pos == Label(['Z', 'Z', 'Z']) {
-                break i + 1;
-            }
-        };
-
+        let steps = Self::steps_to_complete(
+            Label(['A', 'A', 'A']),
+            |l| l == Label(['Z', 'Z', 'Z']),
+            &input.directions,
+            &m,
+        )?;
         Ok(steps.to_string())
+    }
+}
+
+impl Part2 for Problem8 {
+    fn run2(input: Self::Input) -> anyhow::Result<String> {
+        let mut m = HashMap::new();
+        for node in input.nodes.iter() {
+            m.insert(node.label, node.choices);
+        }
+
+        let pos: Vec<Label> = input
+            .nodes
+            .iter()
+            .filter_map(|n| match n.label {
+                Label([_, _, 'A']) => Some(n.label),
+                _ => None,
+            })
+            .collect();
+
+        let steps = pos
+            .iter()
+            .map(|&p| {
+                Self::steps_to_complete(p, |Label([_, _, c])| c == 'Z', &input.directions, &m)
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        let lcm = steps
+            .iter()
+            .copied()
+            .reduce(|a, b| num::integer::lcm(a, b))
+            .unwrap();
+
+        Ok(lcm.to_string())
     }
 }
 
@@ -107,5 +153,7 @@ mod parser {
 }
 
 fn main() -> Result<()> {
-    utils::run_part1::<Problem8>()
+    utils::run_part1::<Problem8>()?;
+    utils::run_part2::<Problem8>()?;
+    Ok(())
 }

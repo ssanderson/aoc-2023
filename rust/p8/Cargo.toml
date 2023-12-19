@@ -10,3 +10,4 @@ edition.workspace = true
 anyhow.workspace = true
 utils.workspace= true
 nom.workspace = true
+num.workspace = true
