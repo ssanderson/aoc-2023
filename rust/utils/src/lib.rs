@@ -12,7 +12,9 @@ pub fn take_fixed<const N: usize, T>(mut it: impl Iterator<Item = T>) -> [Option
     out
 }
 
-pub fn map_fixed<const N: usize, T>(
+pub fn map_fixed<const N: usize, I, O>(input: [I; N], f: impl Fn(&I) -> O) -> [O; N] {
+    std::array::from_fn(move |i| f(&input[i]))
+}
 
 #[cfg(test)]
 mod test {

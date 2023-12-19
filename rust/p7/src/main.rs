@@ -1,8 +1,8 @@
 mod hand;
 
-use hand::{BidHand, Card, Hand};
+use hand::{BidHand, Card, Hand, Hand2};
 
-use utils::Part1;
+use utils::{Part1, Part2};
 
 struct Problem7;
 
@@ -28,8 +28,27 @@ impl Part1 for Problem7 {
     }
 }
 
+impl Part2 for Problem7 {
+    fn run2(input: Self::Input) -> anyhow::Result<String> {
+        let mut hands: Vec<_> = input
+            .hands
+            .into_iter()
+            .map(|BidHand { hand, bid }| BidHand { bid, hand: Hand2::from(hand) })
+            .collect();
+        hands.sort_by_key(|h| h.hand);
+
+        let total: usize = hands
+            .into_iter()
+            .enumerate()
+            .map(|(i, h)| (i + 1) * h.bid as usize)
+            .sum();
+
+        Ok(total.to_string())
+    }
+}
+
 struct Input {
-    hands: Vec<BidHand>,
+    hands: Vec<BidHand<Hand>>,
 }
 
 mod parser {
@@ -81,5 +100,6 @@ mod parser {
 
 fn main() -> anyhow::Result<()> {
     utils::run_part1::<Problem7>()?;
+    utils::run_part2::<Problem7>()?;
     Ok(())
 }
