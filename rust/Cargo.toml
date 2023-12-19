@@ -8,6 +8,7 @@ members = [
     "p5",
     "p6",
     "p7",
+    "p8",
 ]
 resolver = "2"
 
